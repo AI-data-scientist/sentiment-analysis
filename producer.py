@@ -60,7 +60,7 @@ def main():
     producer = initialize_kafka_producer()
     
     # Twitter search query
-    query = 'free_palestine -is:retweet lang:en'
+    query = 'Maroc:retweet lang:en'
     
     # Fetch tweets
     tweets = fetch_tweets(client, query, max_results=10)

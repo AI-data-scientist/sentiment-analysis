@@ -1,0 +1,12 @@
+# Force les fichiers texte à LF (fin de ligne Unix)
+* text=auto eol=lf
+
+# Ne jamais modifier les fichiers binaires
+*.pkl binary
+*.csv text eol=lf
+*.ipynb text eol=lf
+*.lock binary
+*.turtle binary
+
+# Pour les fichiers spécifiques à Mongo
+mongo/** binary

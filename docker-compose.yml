@@ -99,7 +99,7 @@ services:
       - PYSPARK_DRIVER_PYTHON=python3
       - SPARK_LOCAL_IP=spark
     ports:
-      - "8082:8080" # Spark UI
+      - "8083:8080" # Spark UI
       - "4040:4040" # Spark Streaming UI
       - "7077:7077"
     volumes:
@@ -112,7 +112,18 @@ services:
         condition: service_healthy
     networks:
       - spark_network
-
+  spark-worker:
+    image: bitnami/spark:3.5.0
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+    depends_on:
+      - spark
+    networks:
+      - spark_network
   producer:
     build:
       context: .
