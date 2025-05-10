@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .glow {
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow">
+            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+                    Sentiment Analysis Dashboard
+                </h1>
+                <div class="flex items-center space-x-4">
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        <i class="fas fa-database mr-1"></i> MongoDB
+                    </span>
+                    <button id="refreshBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i> Refresh Data
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-green-100 p-3 rounded-md">
+                                <i class="fas fa-smile text-green-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Positive</dt>
+                                    <dd id="positiveCount" class="flex items-baseline">
+                                        <div class="text-2xl font-semibold text-gray-900 pulse">Loading...</div>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-gray-100 p-3 rounded-md">
+                                <i class="fas fa-meh text-gray-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Neutral</dt>
+                                    <dd id="neutralCount" class="flex items-baseline">
+                                        <div class="text-2xl font-semibold text-gray-900 pulse">Loading...</div>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-red-100 p-3 rounded-md">
+                                <i class="fas fa-frown text-red-600 text-2xl"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Negative</dt>
+                                    <dd id="negativeCount" class="flex items-baseline">
+                                        <div class="text-2xl font-semibold text-gray-900 pulse">Loading...</div>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="bg-white shadow rounded-lg p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        <i class="fas fa-chart-bar text-blue-500 mr-2"></i>
+                        Sentiment Distribution
+                    </h2>
+                    <div class="flex space-x-2">
+                        <button id="barBtn" class="px-3 py-1 bg-blue-600 text-white rounded-md text-sm">
+                            <i class="fas fa-chart-bar mr-1"></i> Bar
+                        </button>
+                        <button id="pieBtn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md text-sm">
+                            <i class="fas fa-chart-pie mr-1"></i> Pie
+                        </button>
+                        <button id="doughnutBtn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md text-sm">
+                            <i class="fas fa-chart-line mr-1"></i> Doughnut
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Data Section -->
+            <div class="bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-200">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">
+                        <i class="fas fa-list-ul text-blue-500 mr-2"></i>
+                        Recent Sentiment Data
+                    </h3>
+                </div>
+                <div class="bg-white divide-y divide-gray-200">
+                    <div class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div class="min-w-0 flex-1">
+                                <div class="grid grid-cols-3 md:grid-cols-4 gap-4">
+                                    <div class="text-sm font-medium text-gray-900">Text</div>
+                                    <div class="text-sm font-medium text-gray-900">Sentiment</div>
+                                    <div class="text-sm font-medium text-gray-900 hidden md:block">Confidence</div>
+                                    <div class="text-sm font-medium text-gray-900">Date</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="recentData" class="divide-y divide-gray-200">
+                        <div class="px-6 py-4 pulse">
+                            <div class="text-center py-8">
+                                <i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i>
+                                <p class="mt-2 text-gray-500">Loading recent data...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Chart configuration
+        let sentimentChart;
+        let currentChartType = 'bar';
+
+        // Colors for the chart
+        const chartColors = {
+            positive: '#10B981',
+            neutral: '#6B7280',
+            negative: '#EF4444',
+            background: 'rgba(255, 255, 255, 0.1)'
+        };
+
+        // Initialize the chart
+        function initChart(data) {
+            const ctx = document.getElementById('sentimentChart').getContext('2d');
+
+            // Update stats cards
+            document.getElementById('positiveCount').innerHTML = `<div class="text-2xl font-semibold text-gray-900">${data.positive}</div>`;
+            document.getElementById('neutralCount').innerHTML = `<div class="text-2xl font-semibold text-gray-900">${data.neutral}</div>`;
+            document.getElementById('negativeCount').innerHTML = `<div class="text-2xl font-semibold text-gray-900">${data.negative}</div>`;
+
+            // Chart data
+            const chartData = {
+                labels: ['Positive', 'Neutral', 'Negative'],
+                datasets: [{
+                    label: 'Sentiment Count',
+                    data: [data.positive, data.neutral, data.negative],
+                    backgroundColor: [
+                        chartColors.positive,
+                        chartColors.neutral,
+                        chartColors.negative
+                    ],
+                    borderColor: [
+                        chartColors.positive,
+                        chartColors.neutral,
+                        chartColors.negative
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            // Chart options
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = data.positive + data.neutral + data.negative;
+                                const value = context.raw;
+                                const percentage = Math.round((value / total) * 100);
+                                return `${context.label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            };
+
+            // Destroy previous chart if exists
+            if (sentimentChart) {
+                sentimentChart.destroy();
+            }
+
+            // Create new chart based on current type
+            switch(currentChartType) {
+                case 'pie':
+                    sentimentChart = new Chart(ctx, {
+                        type: 'pie',
+                        data: chartData,
+                        options: options
+                    });
+                    break;
+                case 'doughnut':
+                    sentimentChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: chartData,
+                        options: options
+                    });
+                    break;
+                default:
+                    sentimentChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: chartData,
+                        options: options
+                    });
+            }
+        }
+
+        // Update recent data table
+        function updateRecentData(recentItems) {
+            const recentDataContainer = document.getElementById('recentData');
+            recentDataContainer.innerHTML = '';
+
+            if (recentItems.length === 0) {
+                recentDataContainer.innerHTML = `
+                    <div class="px-6 py-4">
+                        <div class="text-center py-4 text-gray-500">
+                            No recent data available
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            recentItems.forEach(item => {
+                let sentimentColor, sentimentIcon;
+
+                switch(item.sentiment) {
+                    case 'positive':
+                        sentimentColor = 'text-green-600 bg-green-100';
+                        sentimentIcon = 'fa-smile';
+                        break;
+                    case 'negative':
+                        sentimentColor = 'text-red-600 bg-red-100';
+                        sentimentIcon = 'fa-frown';
+                        break;
+                    default:
+                        sentimentColor = 'text-gray-600 bg-gray-100';
+                        sentimentIcon = 'fa-meh';
+                }
+
+                const row = document.createElement('div');
+                row.className = 'px-6 py-4 hover:bg-gray-50 transition';
+                row.innerHTML = `
+                    <div class="grid grid-cols-3 md:grid-cols-4 gap-4 items-center">
+                        <div class="text-sm text-gray-900 truncate" title="${item.text}">${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}</div>
+                        <div>
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${sentimentColor}">
+                                <i class="fas ${sentimentIcon} mr-1"></i> ${item.sentiment.charAt(0).toUpperCase() + item.sentiment.slice(1)}
+                            </span>
+                        </div>
+                        <div class="hidden md:block">
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${Math.round(item.confidence * 100)}%"></div>
+                            </div>
+                            <span class="text-xs text-gray-500">${Math.round(item.confidence * 100)}%</span>
+                        </div>
+                        <div class="text-sm text-gray-500">${new Date(item.date).toLocaleString()}</div>
+                    </div>
+                `;
+                recentDataContainer.appendChild(row);
+            });
+        }
+
+        // Fetch data from MongoDB (simulated)
+        async function fetchData() {
+            try {
+                // In a real application, you would make an API call to your backend
+                // which would then query MongoDB. For this example, we'll simulate it.
+
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                // Mock data - in a real app, this would come from your API
+                const mockData = {
+                    counts: {
+                        positive: Math.floor(Math.random() * 100) + 50,
+                        neutral: Math.floor(Math.random() * 100) + 30,
+                        negative: Math.floor(Math.random() * 100) + 20
+                    },
+                    recentItems: [
+                        {
+                            text: "I absolutely love this product! It's changed my life for the better.",
+                            sentiment: "positive",
+                            confidence: 0.95,
+                            date: new Date()
+                        },
+                        {
+                            text: "The service was okay, nothing special but not bad either.",
+                            sentiment: "neutral",
+                            confidence: 0.78,
+                            date: new Date(Date.now() - 86400000)
+                        },
+                        {
+                            text: "Terrible experience. I would never recommend this to anyone.",
+                            sentiment: "negative",
+                            confidence: 0.92,
+                            date: new Date(Date.now() - 172800000)
+                        },
+                        {
+                            text: "It's a decent product but could use some improvements.",
+                            sentiment: "neutral",
+                            confidence: 0.65,
+                            date: new Date(Date.now() - 259200000)
+                        },
+                        {
+                            text: "Amazing! Worth every penny and more. 5 stars!",
+                            sentiment: "positive",
+                            confidence: 0.98,
+                            date: new Date(Date.now() - 345600000)
+                        }
+                    ]
+                };
+
+                return mockData;
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return {
+                    counts: { positive: 0, neutral: 0, negative: 0 },
+                    recentItems: []
+                };
+            }
+        }
+
+        // Load data and update UI
+        async function loadData() {
+            // Show loading states
+            document.querySelectorAll('.pulse').forEach(el => {
+                el.classList.add('pulse');
+            });
+
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Refreshing...';
+            refreshBtn.disabled = true;
+
+            // Fetch data
+            const data = await fetchData();
+
+            // Update UI
+            initChart(data.counts);
+            updateRecentData(data.recentItems);
+
+            // Remove loading states
+            document.querySelectorAll('.pulse').forEach(el => {
+                el.classList.remove('pulse');
+            });
+
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Refresh Data';
+            refreshBtn.disabled = false;
+        }
+
+        // Event listeners
+        document.getElementById('refreshBtn').addEventListener('click', loadData);
+
+        document.getElementById('barBtn').addEventListener('click', () => {
+            currentChartType = 'bar';
+            loadData();
+            document.getElementById('barBtn').classList.remove('bg-gray-200', 'text-gray-700');
+            document.getElementById('barBtn').classList.add('bg-blue-600', 'text-white');
+            document.getElementById('pieBtn').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('pieBtn').classList.add('bg-gray-200', 'text-gray-700');
+            document.getElementById('doughnutBtn').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('doughnutBtn').classList.add('bg-gray-200', 'text-gray-700');
+        });
+
+        document.getElementById('pieBtn').addEventListener('click', () => {
+            currentChartType = 'pie';
+            loadData();
+            document.getElementById('pieBtn').classList.remove('bg-gray-200', 'text-gray-700');
+            document.getElementById('pieBtn').classList.add('bg-blue-600', 'text-white');
+            document.getElementById('barBtn').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('barBtn').classList.add('bg-gray-200', 'text-gray-700');
+            document.getElementById('doughnutBtn').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('doughnutBtn').classList.add('bg-gray-200', 'text-gray-700');
+        });
+
+        document.getElementById('doughnutBtn').addEventListener('click', () => {
+            currentChartType = 'doughnut';
+            loadData();
+            document.getElementById('doughnutBtn').classList.remove('bg-gray-200', 'text-gray-700');
+            document.getElementById('doughnutBtn').classList.add('bg-blue-600', 'text-white');
+            document.getElementById('barBtn').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('barBtn').classList.add('bg-gray-200', 'text-gray-700');
+            document.getElementById('pieBtn').classList.remove('bg-blue-600', 'text-white');
+            document.getElementById('pieBtn').classList.add('bg-gray-200', 'text-gray-700');
+        });
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
