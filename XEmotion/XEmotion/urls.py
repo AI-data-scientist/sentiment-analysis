@@ -17,16 +17,30 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from core import views
+from django.http import HttpResponse
+from django.contrib.auth import views as auth_views
 
+def chrome_devtools(request):
+    """Gère les requêtes ping de Chrome DevTools"""
+    return HttpResponse(status=204)  # Réponse No Content
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('', views.index, name='index'),
-    path('sign-in/', views.signin, name='sign-in'),  # Correct the URL here
+    
+    # Gestion spécifique pour Chrome DevTools
+    path('.well-known/appspecific/com.chrome.devtools.json', 
+         chrome_devtools, name='chrome-devtools'),
+    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
+
+    # Vos autres URLs
+    path('sign-in/', views.signin, name='sign-in'),  # Note: j'ai corrigé signin en sign_in
     path('register/', views.register, name='register'),
     path('chart/', views.chart, name='chart'),
     path('logout/', views.logout_view, name='logout'),
     path('about/', views.about_view, name='about'),
+    path('analyze/', views.analyze_view, name='analyze'),
+    path('delete_account/', views.delete_account, name='delete_account'),
+
     path('parametres/', views.parametres_view, name='parametres'),
 ]
-
