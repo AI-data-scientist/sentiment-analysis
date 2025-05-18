@@ -1,10 +1,13 @@
-#requirements
+djongo==1.3.6
+Django==3.2
+pymongo==3.12.3
+
+
+# Utilitaires divers
 kafka-python==2.0.2
-#pymongo>=4.3,<5
-#python-decouple==3.8
 tweepy==4.14.0
 textblob==0.18.0.post0 
-requests==2.27.1  # Version spécifique pour éviter les conflits
+requests==2.27.1
 requests-oauthlib==1.3.1
 oauthlib==3.2.2
-
+python-decouple==3.8  # pour gérer les variables d'environnement proprement
