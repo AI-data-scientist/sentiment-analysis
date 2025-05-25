@@ -1,0 +1,46 @@
+"""
+URL configuration for core project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/5.2/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path
+from core import views
+from django.http import HttpResponse
+from django.contrib.auth import views as auth_views
+from core.views import analyze_view
+def chrome_devtools(request):
+    """Gère les requêtes ping de Chrome DevTools"""
+    return HttpResponse(status=204)  # Réponse No Content
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path('', views.index, name='index'),
+    
+    # Gestion spécifique pour Chrome DevTools
+    path('.well-known/appspecific/com.chrome.devtools.json', 
+         chrome_devtools, name='chrome-devtools'),
+    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
+
+    # Vos autres URLs
+    path('sign-in/', views.signin, name='sign-in'),  # Note: j'ai corrigé signin en sign_in
+    path('register/', views.register, name='register'),
+    path('chart/', views.chart, name='chart'),
+    path('logout/', views.logout_view, name='logout'),
+    path('about/', views.about_view, name='about'),
+    path('analyze/', views.analyze_view, name='analyze'),
+    path('delete_account/', views.delete_account, name='delete_account'),
+
+    path('parametres/', views.parametres_view, name='parametres'),
+]

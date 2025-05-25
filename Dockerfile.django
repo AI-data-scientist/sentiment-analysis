@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copier requirements et installer dépendances
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# Copier tout le projet (y compris XEmotion et autres fichiers)
+COPY . .
+
+EXPOSE 8000
+
+CMD ["python", "XEmotion/manage.py", "runserver", "0.0.0.0:8000"]

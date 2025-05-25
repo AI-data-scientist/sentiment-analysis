@@ -1,0 +1,181 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SERVERS: zookeeper:2888:3888
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      retries: 10
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - zoo-data:/var/lib/zookeeper/data
+      - zoo-log:/var/lib/zookeeper/log
+    networks:
+      - spark_network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,DOCKER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,DOCKER://kafka:29092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,DOCKER://0.0.0.0:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/kafka/29092"]
+      interval: 10s
+      retries: 10
+      start_period: 90s
+      timeout: 10s
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - spark_network
+
+  mongodb:
+    image: bitnami/mongodb:latest
+    container_name: mongodb
+    environment:
+      - MONGODB_ROOT_USER=admin
+      - MONGODB_ROOT_PASSWORD=admin123
+      - MONGODB_DATABASE=tweets_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/bitnami/mongodb
+    restart: always
+    healthcheck:
+      test: ["CMD", "mongosh", "-u", "admin", "-p", "admin123", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      retries: 5
+      start_period: 120s
+      timeout: 10s
+    networks:
+      - spark_network
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=admin123
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin123
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: always
+    networks:
+      - spark_network
+
+  spark:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    container_name: spark
+    environment:
+      - PYSPARK_PYTHON=python3
+      - PYSPARK_DRIVER_PYTHON=python3
+      - SPARK_LOCAL_IP=spark
+    ports:
+      - "8083:8080" # Spark UI
+      - "4040:4040" # Spark Streaming UI
+      - "7077:7077"
+    volumes:
+      - .:/app
+      - ./checkpoint:/app/checkpoint
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - spark_network
+
+  spark-worker:
+    image: bitnami/spark:3.5.0
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+    depends_on:
+      - spark
+    networks:
+      - spark_network
+
+  producer:
+    build:
+      context: .
+      dockerfile: Dockerfile.producer
+    container_name: producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: always
+    networks:
+      - spark_network
+
+  django: 
+    build:
+      context: .
+      dockerfile: Dockerfile.django
+    container_name: django
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://admin:admin123@mongodb:27017/?authSource=admin
+      - MONGO_DB=tweets_db
+      - DJANGO_SETTINGS_MODULE=XEmotion.settings
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - MONGO_USER=admin
+      - MONGO_PASSWORD=admin123
+    depends_on:
+      - mongodb
+    networks:
+      - spark_network
+    volumes:
+      - .:/app
+  grpc-ml-model:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: grpc-ml-model
+    ports:
+      - "50052:50052"
+    networks:
+      - spark_network
+    volumes:
+      - .:/logistic_regression_model.pkl
+
+volumes:
+  mongo-data:
+  zoo-data:
+  zoo-log:
+  kafka-data:
+
+networks:
+  spark_network:
+    driver: bridge

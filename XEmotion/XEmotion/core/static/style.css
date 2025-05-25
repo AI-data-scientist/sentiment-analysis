@@ -1,0 +1,165 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    min-height: 100vh;
+}
+
+.emotion-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.twitter-gradient {
+    background: linear-gradient(135deg, #1DA1F2 0%, #0d8ecf 100%);
+}
+
+.feature-card {
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+.hashtag-bubble {
+    animation: float 6s ease-in-out infinite;
+}
+
+.hashtag-bubble:nth-child(2) {
+    animation-delay: 1s;
+}
+
+.hashtag-bubble:nth-child(3) {
+    animation-delay: 2s;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+.sentiment-positive {
+    background-color: rgba(52, 211, 153, 0.2);
+    color: #065f46;
+}
+
+.sentiment-negative {
+    background-color: rgba(248, 113, 113, 0.2);
+    color: #991b1b;
+}
+
+.sentiment-neutral {
+    background-color: rgba(156, 163, 175, 0.2);
+    color: #374151;
+}
+:root {
+    --main-blue: #0066CC;
+}
+.gradient-bg {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+
+
+
+}
+
+.card-shadow {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.sidebar {
+    transition: all 0.3s ease;
+}
+
+.sentiment-positive {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.sentiment-negative {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.sentiment-neutral {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.feature-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #3b82f6;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.team-card:hover {
+    transform: translateY(-5px);
+    transition: all 0.3s ease;
+}
+
+.input-focus:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.social-btn {
+    transition: all 0.3s ease;
+}
+
+.social-btn:hover {
+    transform: translateY(-2px);
+}

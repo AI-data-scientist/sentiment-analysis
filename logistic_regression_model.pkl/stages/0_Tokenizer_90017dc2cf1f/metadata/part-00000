@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.Tokenizer","timestamp":1747854899219,"sparkVersion":"3.5.5","uid":"Tokenizer_90017dc2cf1f","paramMap":{"outputCol":"tokens","inputCol":"Text"},"defaultParamMap":{"outputCol":"Tokenizer_90017dc2cf1f__output"}}

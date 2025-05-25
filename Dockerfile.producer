@@ -1,0 +1,18 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Installer les dépendances système requises
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc python3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+# Installation spécifique pour éviter les conflits
+RUN pip install --upgrade pip==23.0.1 && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["python", "producer.py"]

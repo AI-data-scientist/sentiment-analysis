@@ -1,0 +1,33 @@
+# Django stack
+Django==3.2
+djongo==1.3.6               # MongoDB support in Django
+pymongo==3.12.0             # Required backend for Djongo
+
+# Kafka + Twitter
+kafka-python==2.0.2
+tweepy==4.14.0              # Official Twitter API
+twikit                      # Unofficial X.com scraping (no version pin, latest may break)
+pyspark
+
+# gRPC + NLP
+grpcio
+grpcio-tools
+textblob==0.18.0.post0
+pandas
+pyarrow==20.0.0
+
+# Spark (if using PySpark inside Django views or consumer)
+py4j                        # Comes with pyspark; required if you interface it manually
+
+# Web auth / utils
+requests==2.27.1
+requests-oauthlib==1.3.1
+oauthlib==3.2.2
+python-decouple==3.8        # For .env/config.ini style
+
+# Production server
+gunicorn>=20.0.4            # Production WSGI server (useful with Django)
+
+# Additional recommended
+lxml                        # Recommended for `twikit` if it parses HTML
+certifi                     # Helps with SSL issues

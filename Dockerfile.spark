@@ -1,0 +1,75 @@
+#docherfile.spark
+# Use Bitnami Spark base image
+FROM bitnami/spark:3.5.0
+
+# Switch to root for setup
+USER root
+
+# Create working directory and set permissions
+RUN mkdir -p /app /opt/bitnami/spark/jars /home/sparkuser/.local/lib && \
+    useradd -u 1001 -m -d /home/sparkuser -s /bin/bash sparkuser && \
+    chown -R sparkuser:sparkuser /app /home/sparkuser /opt/bitnami/spark /opt/bitnami/spark/jars
+
+# Install curl
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Installer pandas (et grpcio si besoin)
+RUN pip install --no-cache-dir grpcio grpcio-tools pandas pyarrow
+
+# Créer répertoire
+RUN mkdir -p /app/XEmotion/core
+
+# Copier les fichiers gRPC
+COPY XEmotion/core/sentiment_pb2.py /app/XEmotion/core/
+COPY XEmotion/core/sentiment_pb2_grpc.py /app/XEmotion/core/
+# Update pip
+RUN pip install --no-cache-dir --upgrade pip
+
+# Install Python dependencies as root with PyPI mirror
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r /app/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple && \
+    python -m nltk.downloader -d /home/sparkuser/nltk_data punkt averaged_perceptron_tagger
+
+# Download Spark dependencies
+RUN curl -o /opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.0.jar \
+    https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/3.5.0/spark-sql-kafka-0-10_2.12-3.5.0.jar && \
+    curl -o /opt/bitnami/spark/jars/kafka-clients-3.4.1.jar \
+    https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.4.1/kafka-clients-3.4.1.jar && \
+    curl -o /opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.0.jar \
+    https://repo1.maven.org/maven2/org/apache/spark/spark-token-provider-kafka-0-10_2.12/3.5.0/spark-token-provider-kafka-0-10_2.12-3.5.0.jar && \
+    curl -o /opt/bitnami/spark/jars/commons-pool2-2.11.1.jar \
+    https://repo1.maven.org/maven2/org/apache/commons/commons-pool2/2.11.1/commons-pool2-2.11.1.jar && \
+    curl -o /opt/bitnami/spark/jars/slf4j-api-2.0.7.jar \
+    https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.7/slf4j-api-2.0.7.jar && \
+    curl -o /opt/bitnami/spark/jars/lz4-java-1.8.0.jar \
+    https://repo1.maven.org/maven2/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar && \
+    curl -o /opt/bitnami/spark/jars/snappy-java-1.1.10.3.jar \
+    https://repo1.maven.org/maven2/org/xerial/snappy/snappy-java/1.1.10.3/snappy-java-1.1.10.3.jar && \
+    curl -o /opt/bitnami/spark/jars/mongo-spark-connector_2.12-10.3.0.jar \
+    https://repo1.maven.org/maven2/org/mongodb/spark/mongo-spark-connector_2.12/10.3.0/mongo-spark-connector_2.12-10.3.0.jar && \
+    curl -o /opt/bitnami/spark/jars/mongodb-driver-sync-5.1.1.jar \
+    https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/5.1.1/mongodb-driver-sync-5.1.1.jar && \
+    curl -o /opt/bitnami/spark/jars/mongodb-driver-core-5.1.1.jar \
+    https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/5.1.1/mongodb-driver-core-5.1.1.jar && \
+    curl -o /opt/bitnami/spark/jars/bson-5.1.1.jar \
+    https://repo1.maven.org/maven2/org/mongodb/bson/5.1.1/bson-5.1.1.jar
+
+# Copy project files
+COPY Consumer.py /app/
+
+# Switch to the named user
+USER sparkuser
+
+# Set working directory
+WORKDIR /app
+
+# Set environment variables
+ENV PYSPARK_PYTHON=python3
+ENV PYSPARK_DRIVER_PYTHON=python3
+ENV SPARK_HOME=/opt/bitnami/spark
+ENV PATH=$SPARK_HOME/bin:$PATH
+ENV HOME=/home/sparkuser
+ENV HADOOP_USER_NAME=sparkuser
+ENV PYTHONPATH="$PYTHONPATH:/app/XEmotion/core"

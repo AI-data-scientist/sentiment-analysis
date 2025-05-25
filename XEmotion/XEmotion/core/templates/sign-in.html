@@ -1,0 +1,89 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - XEmotion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+
+
+
+</head>
+<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-2xl p-8 card-shadow">
+            <div class="flex justify-center mb-6">
+                <div class="flex items-center space-x-2">
+
+                     <h1 class="text-2xl font-bold">
+                <span class="text-black">X</span>
+                <span class="text-blue-700">Emotion</span>
+              </h1>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-2">Welcome back</h2>
+            <p class="text-gray-600 text-center mb-8">Sign in to analyze Twitter sentiment</p>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+            <form id="login-form" method="post" action="{% url 'sign-in' %}" class="space-y-4">
+                 {% csrf_token %}
+                 {{ form.as_p }}
+
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Email or Username</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        <input type="text" id="username" name="username" required
+                               class="pl-10 w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500 input-focus transition duration-200"
+                               placeholder="john@example.com or johndoe" value="{{ username }}">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400"></i>
+                        </div>
+                        <input  type="password" id="password" name="password" required
+                               class="pl-10 w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500 input-focus transition duration-200"
+                               placeholder="••••••••">
+                    </div>
+
+                </div>
+
+
+
+                <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                    Sign In
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    Don't have an account?
+                    <a href="{% url 'register' %}"  class="text-blue-600 font-medium hover:underline">Sign up</a>
+                </p>
+            </div>
+        </div>
+
+
+    </div>
+
+</body>
+</html>
