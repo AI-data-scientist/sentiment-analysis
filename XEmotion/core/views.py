@@ -8,8 +8,11 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from pymongo import MongoClient
 from django.views.decorators.csrf import csrf_exempt
+<<<<<<< HEAD
 from django.conf import settings
 import pymongo
+=======
+>>>>>>> 65b620c9c2ed289b68fac01367925fb52e0ff74a
 
 def index(request):
     return render(request, 'index.html')
@@ -52,10 +55,15 @@ def register(request):
 
        
         # Connexion à MongoDB et insertion de l'utilisateur dans la collection 'users'
+<<<<<<< HEAD
         client = pymongo.MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=5000)
         client.admin.command("ping")
         db = client[settings.MONGO_DB]
 
+=======
+        client = MongoClient('mongodb://admin:admin123@localhost:27017/tweets_db?authSource=admin')
+        db = client['tweets_db']
+>>>>>>> 65b620c9c2ed289b68fac01367925fb52e0ff74a
         users_collection = db['users']
 
         # Préparer le document utilisateur à insérer dans MongoDB
@@ -88,14 +96,26 @@ from pymongo import MongoClient
 import pymongo
 def chart(request):
     try:
+<<<<<<< HEAD
         client = pymongo.MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=5000)
 
+=======
+        client = pymongo.MongoClient(
+            "mongodb://admin:admin123@host.docker.internal:27017/",
+            authSource="admin",
+            serverSelectionTimeoutMS=5000
+        )
+>>>>>>> 65b620c9c2ed289b68fac01367925fb52e0ff74a
         
         print("Test de connexion...")
         client.admin.command('ping')
         print("Connexion réussie!")
         
+<<<<<<< HEAD
         db = client[settings.MONGO_DB]
+=======
+        db = client["tweets_db"]
+>>>>>>> 65b620c9c2ed289b68fac01367925fb52e0ff74a
         print("Collections disponibles:", db.list_collection_names())
         
         # Récupération des tweets
@@ -159,9 +179,14 @@ def signin(request):
             password = request.POST.get('password')
 
             # Connect to MongoDB using the service name 'mongodb' (for Docker)
+<<<<<<< HEAD
             client = pymongo.MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=5000)
             client.admin.command("ping")
             db = client[settings.MONGO_DB]
+=======
+            client = MongoClient('mongodb://admin:admin123@localhost:27017/tweets_db?authSource=admin')
+            db = client['tweets_db']
+>>>>>>> 65b620c9c2ed289b68fac01367925fb52e0ff74a
             users_collection = db['users']
             #users_collection.insert_one({"username": "admin", "password": "admin123", "email": "admin@gmail.com","image": "/static/images/im.png"})
             #users_collection.insert_one({"username": "wissal", "password": "w123", "email": "w@gmail.com"})
@@ -208,9 +233,14 @@ from pymongo import MongoClient
 def delete_account(request):
     if request.method == 'POST':
         try:
+<<<<<<< HEAD
             client = pymongo.MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=5000)
             client.admin.command("ping")
             db = client[settings.MONGO_DB]
+=======
+            client = MongoClient('mongodb://admin:admin123@localhost:27017/', authSource='admin')
+            db = client['tweets_db']
+>>>>>>> 65b620c9c2ed289b68fac01367925fb52e0ff74a
             users_collection = db['users']
 
             current_user = request.session.get('user')
@@ -255,9 +285,17 @@ from pymongo import MongoClient
 
 def parametres_view(request):
     try:
+<<<<<<< HEAD
         client = pymongo.MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=5000)
         client.admin.command("ping")
         db = client[settings.MONGO_DB]
+=======
+        client = MongoClient(
+            'mongodb://admin:admin123@localhost:27017/',
+            authSource='admin'
+        )
+        db = client['tweets_db']
+>>>>>>> 65b620c9c2ed289b68fac01367925fb52e0ff74a
         users_collection = db['users']
 
         current_user = request.session.get('user')

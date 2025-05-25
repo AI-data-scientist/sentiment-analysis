@@ -1,3 +1,5 @@
+
+#producer.py
 import tweepy
 import json
 import logging
@@ -78,3 +80,4 @@ if __name__ == "__main__":
         logger.error(f" Producer crashed: {e}")
     finally:
         logger.info("Shutting down producer.")
+        # Producer is automatically closed by context

@@ -85,5 +85,4 @@ query = final_df.writeStream \
     .option("spark.mongodb.collection", "tweets") \
     .outputMode("append") \
     .start()
-
 query.awaitTermination()
