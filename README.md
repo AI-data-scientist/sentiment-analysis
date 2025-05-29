@@ -40,9 +40,6 @@ How to Run the Project:
 
    docker-compose up --build
 
-### 4. Open the Dashboard:
-
-   Open your browser and go to: http://localhost:8000/
 
 ## Tests:
 
